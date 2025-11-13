@@ -3,6 +3,26 @@ class UIControls {
         this.app = app;
         this.initializeControls();
         this.setupRangeStyles();
+        this.setupFullscreenListeners();
+        
+        this.updateFullscreenIcon();
+    }
+
+    setupFullscreenListeners() {
+        
+        const fullscreenEvents = [
+            'fullscreenchange',
+            'webkitfullscreenchange', 
+            'mozfullscreenchange',
+            'MSFullscreenChange'
+        ];
+
+        fullscreenEvents.forEach(event => {
+            document.addEventListener(event, () => {
+                console.log('Evento de pantalla completa detectado:', event);
+                this.updateFullscreenIcon();
+            });
+        });
     }
 
     setupRangeStyles() {
@@ -147,31 +167,69 @@ class UIControls {
     }
 
     toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.log(`Error attempting to enable fullscreen: ${err.message}`);
-            });
+        console.log('Toggle fullscreen llamado');
+        
+        if (!document.fullscreenElement && 
+            !document.webkitFullscreenElement && 
+            !document.mozFullScreenElement &&
+            !document.msFullscreenElement) {
+            
+            const element = document.documentElement;
+            
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else if (element.mozRequestFullScreen) {
+                element.mozRequestFullScreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+            }
         } else {
+            
             if (document.exitFullscreen) {
                 document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
             }
         }
-
-        setTimeout(() => {
-            if (this.app && this.app.onWindowResize) {
-                this.app.onWindowResize();
-            }
-        }, 200);
         
-        this.updateFullscreenIcon();
+        
+        setTimeout(() => {
+            this.updateFullscreenIcon();
+        }, 100);
     }
 
     updateFullscreenIcon() {
         const fullscreenIcon = document.querySelector('#fullscreenToggle i');
-        if (document.fullscreenElement) {
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        
+        if (!fullscreenIcon) {
+            console.error('No se encontró el icono de pantalla completa');
+            return;
+        }
+
+        const isFullscreen = !!(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement || 
+            document.mozFullScreenElement ||
+            document.msFullscreenElement
+        );
+
+        console.log('Actualizando icono. Pantalla completa:', isFullscreen);
+
+        if (isFullscreen) {
             fullscreenIcon.className = 'fas fa-compress';
+            fullscreenToggle.title = 'Salir de pantalla completa';
+            fullscreenToggle.setAttribute('aria-label', 'Salir de pantalla completa');
         } else {
             fullscreenIcon.className = 'fas fa-expand';
+            fullscreenToggle.title = 'Pantalla completa';
+            fullscreenToggle.setAttribute('aria-label', 'Pantalla completa');
         }
     }
 
