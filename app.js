@@ -193,16 +193,407 @@ class WebGLApp {
     setupHelpers() {
         
         if (this.axesHelper) this.scene.remove(this.axesHelper);
-        this.axesHelper = new THREE.AxesHelper(3);
+        
+        
+        const axesGroup = new THREE.Group();
+        
+        
+        const axisLength = 3;
+        const axisRadius = 0.03;
+        
+        
+        const xMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const yMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const zMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        
+        
+        const xGeometry = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, 8);
+        const xAxis = new THREE.Mesh(xGeometry, xMaterial);
+        xAxis.rotation.z = Math.PI / 2;
+        xAxis.position.x = axisLength / 2;
+        axesGroup.add(xAxis);
+        
+        
+        const yGeometry = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, 8);
+        const yAxis = new THREE.Mesh(yGeometry, yMaterial);
+        yAxis.position.y = axisLength / 2;
+        axesGroup.add(yAxis);
+        
+        
+        const zGeometry = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, 8);
+        const zAxis = new THREE.Mesh(zGeometry, zMaterial);
+        zAxis.rotation.x = Math.PI / 2;
+        zAxis.position.z = axisLength / 2;
+        axesGroup.add(zAxis);
+        
+        
+        const coneRadius = axisRadius * 2;
+        const coneHeight = coneRadius * 3;
+        
+        
+        const xConeGeometry = new THREE.ConeGeometry(coneRadius, coneHeight, 8);
+        const xCone = new THREE.Mesh(xConeGeometry, xMaterial);
+        xCone.rotation.z = -Math.PI / 2;
+        xCone.position.x = axisLength;
+        axesGroup.add(xCone);
+        
+        
+        const yConeGeometry = new THREE.ConeGeometry(coneRadius, coneHeight, 8);
+        const yCone = new THREE.Mesh(yConeGeometry, yMaterial);
+        yCone.position.y = axisLength;
+        axesGroup.add(yCone);
+        
+        
+        const zConeGeometry = new THREE.ConeGeometry(coneRadius, coneHeight, 8);
+        const zCone = new THREE.Mesh(zConeGeometry, zMaterial);
+        zCone.rotation.x = Math.PI / 2;
+        zCone.position.z = axisLength;
+        axesGroup.add(zCone);
+        
+        
+        this.createAxisLabels(axesGroup, axisLength);
+        
+        this.axesHelper = axesGroup;
         this.scene.add(this.axesHelper);
         
         
+        this.createNumberedGrid();
+    }
+
+    createNumberedGrid() {
+        
         if (this.gridHelper) this.scene.remove(this.gridHelper);
+        if (this.gridNumbers) this.scene.remove(this.gridNumbers);
+        if (this.heightScale) this.scene.remove(this.heightScale);
+        
+        const gridSize = 20;
+        const divisions = 20;
         const gridColor = document.body.classList.contains('dark-mode') ? 0x334155 : 0xcbd5e1;
-        this.gridHelper = new THREE.GridHelper(20, 20, gridColor, gridColor);
+        
+        
+        this.gridHelper = new THREE.GridHelper(gridSize, divisions, gridColor, gridColor);
         this.gridHelper.position.y = 0;
         this.scene.add(this.gridHelper);
+        
+        
+        this.gridNumbers = new THREE.Group();
+        
+        
+        const numberSize = 0.6;
+        const numberDistance = gridSize / 2 + 0.5;
+        
+        
+        for (let i = -divisions/2; i <= divisions/2; i++) {
+            if (i === 0) continue;
+            
+            const value = i * (gridSize / divisions);
+            
+            
+            this.createGridNumber(value.toString(), 
+                new THREE.Vector3(value, 0, numberDistance), 
+                numberSize, 
+                0xffffff);
+            
+            
+            this.createGridNumber(value.toString(), 
+                new THREE.Vector3(numberDistance, 0, value), 
+                numberSize, 
+                0xffffff);
+        }
+        
+        
+        this.createGridNumber("0", new THREE.Vector3(0, 0, numberDistance), numberSize, 0xffffff);
+        this.createGridNumber("0", new THREE.Vector3(numberDistance, 0, 0), numberSize, 0xffffff);
+        
+        
+        this.createGridNumber("X", new THREE.Vector3(numberDistance + 1, 0, 0), numberSize * 1.2, 0xff0000);
+        this.createGridNumber("Z", new THREE.Vector3(0, 0, numberDistance + 1), numberSize * 1.2, 0x0000ff);
+        
+        this.scene.add(this.gridNumbers);
+        
+        
+        this.createAxisMarks();
+        
+        
+        this.createHeightScale();
     }
+
+    createHeightScale() {
+        
+        this.heightScale = new THREE.Group();
+        
+        const gridSize = 20;
+        const maxHeight = 25; 
+        const scalePosition = -gridSize / 2 - 1; 
+        
+        
+        const lineMaterial = new THREE.LineBasicMaterial({ 
+            color: 0x00ff00, 
+            linewidth: 2
+        });
+        
+        
+        const lineGeometry = new THREE.BufferGeometry();
+        const vertices = new Float32Array([
+            0, 0, scalePosition,          
+            0, maxHeight, scalePosition   
+        ]);
+        lineGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        
+        const verticalLine = new THREE.Line(lineGeometry, lineMaterial);
+        this.heightScale.add(verticalLine);
+        
+        
+        const markMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        
+        for (let y = 0; y <= maxHeight; y++) {
+            
+            const markGeometry = new THREE.BoxGeometry(0.3, 0.02, 0.02);
+            const mark = new THREE.Mesh(markGeometry, markMaterial);
+            mark.position.set(0, y, scalePosition);
+            this.heightScale.add(mark);
+            
+            
+            if (y > 0) {
+                this.createHeightNumber(y.toString(), 
+                    new THREE.Vector3(-0.5, y, scalePosition), 
+                    0.25, 
+                    0x00ff00);
+            }
+        }
+        
+        
+        this.createHeightNumber("Y", 
+            new THREE.Vector3(-0.8, maxHeight + 0.5, scalePosition), 
+            0.3, 
+            0x00ff00);
+        
+        this.scene.add(this.heightScale);
+    }
+
+    createHeightNumber(text, position, size, color) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 64;
+        
+        
+        context.fillStyle = 'transparent';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        
+        context.font = 'Bold 28px Arial';
+        context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true
+        });
+        
+        const sprite = new THREE.Sprite(material);
+        sprite.position.copy(position);
+        sprite.scale.set(size, size, 1);
+        
+        this.heightScale.add(sprite);
+    }
+
+    updateHeightVisualization() {
+        if (!this.surface || !this.heightScale) return;
+        
+        
+        const boundingBox = new THREE.Box3().setFromObject(this.surface);
+        const objectHeight = boundingBox.max.y - boundingBox.min.y;
+        
+        
+        this.updateCurrentHeightIndicator(objectHeight);
+    }
+
+    updateCurrentHeightIndicator(height) {
+        
+        if (this.currentHeightIndicator) {
+            this.heightScale.remove(this.currentHeightIndicator);
+        }
+        
+        const gridSize = 20;
+        const scalePosition = -gridSize / 2 - 1;
+        
+        
+        const indicatorMaterial = new THREE.LineBasicMaterial({ 
+            color: 0xff4444, 
+            linewidth: 3
+        });
+        
+        const indicatorGeometry = new THREE.BufferGeometry();
+        const vertices = new Float32Array([
+            -0.8, height, scalePosition,  
+            0.8, height, scalePosition    
+        ]);
+        indicatorGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        
+        this.currentHeightIndicator = new THREE.Line(indicatorGeometry, indicatorMaterial);
+        this.heightScale.add(this.currentHeightIndicator);
+        
+        
+        this.updateCurrentHeightNumber(height);
+    }
+
+    updateCurrentHeightNumber(height) {
+        
+        if (this.currentHeightNumber) {
+            this.heightScale.remove(this.currentHeightNumber);
+        }
+        
+        const gridSize = 20;
+        const scalePosition = -gridSize / 2 - 1;
+        
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 96;
+        canvas.height = 48;
+        
+        context.fillStyle = 'transparent';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        context.font = 'Bold 24px Arial';
+        context.fillStyle = '#ff4444';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(`Alt: ${height.toFixed(1)}`, canvas.width / 2, canvas.height / 2);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true
+        });
+        
+        this.currentHeightNumber = new THREE.Sprite(material);
+        this.currentHeightNumber.position.set(-1.5, height, scalePosition);
+        this.currentHeightNumber.scale.set(0.4, 0.2, 1);
+        
+        this.heightScale.add(this.currentHeightNumber);
+    }
+
+    createGridNumber(text, position, size, color) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 64;
+        
+        
+        context.fillStyle = 'transparent';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        
+        context.font = 'Bold 32px Arial';
+        context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true
+        });
+        
+        const sprite = new THREE.Sprite(material);
+        sprite.position.copy(position);
+        sprite.scale.set(size, size, 1);
+        
+        
+        sprite.rotation.x = -Math.PI / 2;
+        
+        this.gridNumbers.add(sprite);
+    }
+
+    createAxisMarks() {
+        const markLength = 0.2;
+        const markColor = 0x888888;
+        const gridSize = 20;
+        const divisions = 20;
+        
+        
+        const markMaterial = new THREE.MeshBasicMaterial({ color: markColor });
+        
+        
+        for (let i = -divisions/2; i <= divisions/2; i++) {
+            if (i === 0) continue;
+            
+            const x = i * (gridSize / divisions);
+            
+            
+            const zMarkGeometry = new THREE.BoxGeometry(0.02, 0.02, markLength);
+            const zMark = new THREE.Mesh(zMarkGeometry, markMaterial);
+            zMark.position.set(x, 0.01, 0);
+            this.gridNumbers.add(zMark);
+            
+            
+            const xMarkGeometry = new THREE.BoxGeometry(markLength, 0.02, 0.02);
+            const xMark = new THREE.Mesh(xMarkGeometry, markMaterial);
+            xMark.position.set(0, 0.01, x);
+            this.gridNumbers.add(xMark);
+        }
+    }
+
+    createAxisLabels(axesGroup, axisLength) {
+        
+        const labelDistance = axisLength + 0.5;
+        const labelSize = 0.6;
+        
+        
+        const createLabelTexture = (text, color) => {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 128;
+            canvas.height = 128;
+            
+            
+            context.fillStyle = 'transparent';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            
+            context.font = 'Bold 96px Arial';
+            context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+            
+            return new THREE.CanvasTexture(canvas);
+        };
+        
+        
+        const labelMaterial = new THREE.SpriteMaterial({
+            map: null,
+            transparent: true
+        });
+        
+        
+        const xLabel = new THREE.Sprite(labelMaterial.clone());
+        xLabel.material.map = createLabelTexture('X', 0xff0000);
+        xLabel.position.set(labelDistance, 0, 0);
+        xLabel.scale.set(labelSize, labelSize, 1);
+        axesGroup.add(xLabel);
+        
+        
+        const yLabel = new THREE.Sprite(labelMaterial.clone());
+        yLabel.material.map = createLabelTexture('Y', 0x00ff00);
+        yLabel.position.set(0, labelDistance, 0);
+        yLabel.scale.set(labelSize, labelSize, 1);
+        axesGroup.add(yLabel);
+        
+        
+        const zLabel = new THREE.Sprite(labelMaterial.clone());
+        zLabel.material.map = createLabelTexture('Z', 0x0000ff);
+        zLabel.position.set(0, 0, labelDistance);
+        zLabel.scale.set(labelSize, labelSize, 1);
+        axesGroup.add(zLabel);
+    }
+
 
     updateSceneBackground() {
         const isDarkMode = document.body.classList.contains('dark-mode');
@@ -381,6 +772,20 @@ class WebGLApp {
         
         
         this.autoFrameSurface();
+        this.updateDimensionsInfo();
+        this.updateHeightVisualization();
+    }
+
+    updateDimensionsInfo() {
+        if (!this.surface) return;
+        
+        const boundingBox = new THREE.Box3().setFromObject(this.surface);
+        const size = boundingBox.getSize(new THREE.Vector3());
+        
+        // Actualizar UI con las dimensiones
+        if (this.uiControls) {
+            this.uiControls.updateDimensions(size.x, size.y, size.z);
+        }
     }
 
     autoFrameSurface() {
@@ -418,6 +823,7 @@ class WebGLApp {
         
         this.controls.target.copy(newCenter);
         this.controls.update();
+        this.updateDimensionsInfo();
     }
 
     animate() {
@@ -447,28 +853,23 @@ class WebGLApp {
         }
     }
 
-    onMouseMove(event) {
-        const rect = this.renderer.domElement.getBoundingClientRect();
-        const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        
-        this.uiControls.updateCoordinates(x, y, 0);
-    }
-
     
     changeSurface(surfaceType) {
         this.currentSurface = surfaceType;
         this.createSurface();
+        this.updateDimensionsInfo();
     }
 
     updateResolution(resolution) {
         this.resolution = resolution;
         this.createSurface();
+        this.updateDimensionsInfo();
     }
 
     updateScale(scale) {
         this.scale = scale;
-        this.createSurface();
+        this.createSurface(); 
+        this.updateDimensionsInfo();
     }
 
     toggleWireframe(enabled) {
@@ -529,7 +930,7 @@ class WebGLApp {
     
     updateTheme() {
         this.updateSceneBackground();
-        this.setupHelpers();
+        this.setupHelpers(); 
         
         this.createSurface();
     }

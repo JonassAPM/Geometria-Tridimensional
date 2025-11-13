@@ -38,6 +38,28 @@ class UIControls {
         });
     }
 
+        updateDimensions(width, height, depth) {
+            document.getElementById('coordinates').innerHTML = 
+                `<span style="color: #ffffffff">X: ${width.toFixed(2)}</span> | 
+                <span style="color: #ffffffff">Y: ${height.toFixed(2)}</span> | 
+                <span style="color: #ffffffff">Z: ${depth.toFixed(2)}</span>`;
+        }
+
+        // Mantener los otros métodos igual...
+        updateEquation(equation, description) {
+            document.getElementById('equation').textContent = equation;
+            document.getElementById('equationDesc').textContent = description;
+        }
+
+        updateFPS(fps) {
+            document.getElementById('fps').textContent = `FPS: ${fps}`;
+        }
+
+        updateMeshInfo(vertexCount, triangleCount) {
+            document.getElementById('vertexCount').textContent = `Vértices: ${vertexCount}`;
+            document.getElementById('triangleCount').textContent = `Triángulos: ${triangleCount}`;
+        }
+
     initializeControls() {
         
         document.getElementById('surfaceSelector').addEventListener('change', (e) => {
