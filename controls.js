@@ -156,6 +156,23 @@ class UIControls {
                 document.exitFullscreen();
             }
         }
+
+        setTimeout(() => {
+            if (this.app && this.app.onWindowResize) {
+                this.app.onWindowResize();
+            }
+        }, 200);
+        
+        this.updateFullscreenIcon();
+    }
+
+    updateFullscreenIcon() {
+        const fullscreenIcon = document.querySelector('#fullscreenToggle i');
+        if (document.fullscreenElement) {
+            fullscreenIcon.className = 'fas fa-compress';
+        } else {
+            fullscreenIcon.className = 'fas fa-expand';
+        }
     }
 
     updateEquation(equation, description) {

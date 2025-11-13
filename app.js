@@ -50,27 +50,10 @@ class WebGLApp {
     }
 
     onWindowResize() {
-        const canvas = this.renderer.domElement;
-        const container = document.getElementById('canvasContainer');
         
-        
-        const width = container.clientWidth;
-        const height = container.clientHeight;
-        
-        
-        if (canvas.width !== width || canvas.height !== height) {
-            console.log('Redimensionando canvas:', width, 'x', height);
-            
-            
-            this.camera.aspect = width / height;
-            this.camera.updateProjectionMatrix();
-            
-            
-            this.renderer.setSize(width, height, false);
-            
-            
-            
-        }
+        setTimeout(() => {
+            this.forceFullResize();
+        }, 0);
     }
 
     setupCanvasForMobile() {
@@ -110,9 +93,7 @@ class WebGLApp {
 
     
     forceResize() {
-        const canvas = this.renderer.domElement;
         const container = document.getElementById('canvasContainer');
-        
         const width = container.clientWidth;
         const height = container.clientHeight;
         
@@ -123,7 +104,12 @@ class WebGLApp {
         this.renderer.setSize(width, height, false);
         
         
+        if (document.fullscreenElement) {
+            this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+        }
         
+        
+        this.renderer.render(this.scene, this.camera);
     }
 
     
@@ -188,6 +174,244 @@ class WebGLApp {
         
         window.addEventListener('resize', () => this.onWindowResize());
         this.renderer.domElement.addEventListener('mousemove', (e) => this.onMouseMove(e));
+    }
+
+    setupFullscreenHandling() {
+        
+        document.addEventListener('fullscreenchange', () => {
+            this.handleFullscreenChange();
+        });
+        
+        document.addEventListener('webkitfullscreenchange', () => {
+            this.handleFullscreenChange();
+        });
+        
+        document.addEventListener('mozfullscreenchange', () => {
+            this.handleFullscreenChange();
+        });
+        
+        document.addEventListener('MSFullscreenChange', () => {
+            this.handleFullscreenChange();
+        });
+    }
+
+    handleFullscreenChange() {
+        console.log('Estado de pantalla completa cambiado:', !!document.fullscreenElement);
+        
+        
+        requestAnimationFrame(() => {
+            
+            this.forceFullResize();
+            
+            
+            if (this.controls) {
+                this.controls.handleResize();
+            }
+        });
+    }
+
+    forceFullResize() {
+        const container = document.getElementById('canvasContainer');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        console.log('Nuevas dimensiones del contenedor:', width, 'x', height);
+        
+        
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        
+        
+        this.renderer.setSize(width, height, false);
+        
+        
+        const pixelRatio = document.fullscreenElement ? 
+            Math.min(2, window.devicePixelRatio) : 
+            window.devicePixelRatio;
+        this.renderer.setPixelRatio(pixelRatio);
+        
+        
+        this.renderer.render(this.scene, this.camera);
+        
+        console.log('Canvas redimensionado a:', width, 'x', height);
+    }
+
+    takeScreenshot() {
+        
+        this.renderer.render(this.scene, this.camera);
+        
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        const webGLCanvas = this.renderer.domElement;
+        
+        
+        canvas.width = webGLCanvas.width;
+        canvas.height = webGLCanvas.height + 250; 
+        
+        
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        
+        context.drawImage(webGLCanvas, 0, 0, webGLCanvas.width, webGLCanvas.height);
+        
+        
+        const panelStartY = webGLCanvas.height;
+        const panelHeight = 250;
+        
+        
+        const boundingBox = new THREE.Box3().setFromObject(this.surface);
+        const size = boundingBox.getSize(new THREE.Vector3());
+        const vertexCount = this.surface.geometry.attributes.position.count;
+        const triangleCount = this.surface.geometry.index ? 
+            this.surface.geometry.index.count / 3 : 
+            this.surface.geometry.attributes.position.count / 3;
+        
+        const equation = document.getElementById('equation').textContent;
+        const description = document.getElementById('equationDesc').textContent;
+        
+        
+        const panelWidth = canvas.width / 2;
+        const leftPanelX = 0;
+        const rightPanelX = panelWidth;
+        const contentPadding = 40;
+        
+        
+        context.fillStyle = '#f8f9fa';
+        context.fillRect(leftPanelX, panelStartY, panelWidth, panelHeight);
+        context.fillStyle = '#e9ecef';
+        context.fillRect(rightPanelX, panelStartY, panelWidth, panelHeight);
+        
+        
+        context.strokeStyle = '#dee2e6';
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(panelWidth, panelStartY);
+        context.lineTo(panelWidth, panelStartY + panelHeight);
+        context.stroke();
+        
+        
+        context.fillStyle = '#000000';
+        context.textAlign = 'left';
+        
+        
+        let currentY = panelStartY + contentPadding;
+        
+        
+        context.font = 'bold 18px Arial';
+        context.fillText('INFORMACIÓN DE LA SUPERFICIE', contentPadding, currentY);
+        currentY += 30;
+        
+        context.font = '14px Arial';
+        context.fillText(`Tipo: ${this.getSurfaceName(this.currentSurface)}`, contentPadding, currentY);
+        currentY += 25;
+        
+        context.fillText(`Ecuación:`, contentPadding, currentY);
+        currentY += 20;
+        
+        
+        context.fillStyle = '#007bff';
+        context.font = 'bold 16px Arial';
+        context.fillText(equation, contentPadding + 10, currentY);
+        currentY += 30;
+        
+        context.fillStyle = '#000000';
+        context.font = '14px Arial';
+        context.fillText(`Descripción:`, contentPadding, currentY);
+        currentY += 20;
+        
+        
+        const descLines = this.wrapText(context, description, panelWidth - (contentPadding * 2), '14px Arial');
+        descLines.forEach((line, index) => {
+            context.fillText(line, contentPadding + 10, currentY + (index * 18));
+        });
+        
+        
+        currentY = panelStartY + contentPadding;
+        
+        
+        context.font = 'bold 18px Arial';
+        context.fillText('DATOS TÉCNICOS', rightPanelX + contentPadding, currentY);
+        currentY += 30;
+        
+        context.font = 'bold 14px Arial';
+        context.fillText('DIMENSIONES', rightPanelX + contentPadding, currentY);
+        currentY += 25;
+        
+        context.font = '14px Arial';
+        context.fillText(`Ancho (X): ${size.x.toFixed(2)} unidades`, rightPanelX + contentPadding, currentY);
+        currentY += 20;
+        context.fillText(`Alto (Y): ${size.y.toFixed(2)} unidades`, rightPanelX + contentPadding, currentY);
+        currentY += 20;
+        context.fillText(`Profundidad (Z): ${size.z.toFixed(2)} unidades`, rightPanelX + contentPadding, currentY);
+        currentY += 30;
+        
+        context.font = 'bold 14px Arial';
+        context.fillText('GEOMETRÍA', rightPanelX + contentPadding, currentY);
+        currentY += 25;
+        
+        context.font = '14px Arial';
+        context.fillText(`Vértices: ${vertexCount.toLocaleString()}`, rightPanelX + contentPadding, currentY);
+        currentY += 20;
+        context.fillText(`Triángulos: ${triangleCount.toLocaleString()}`, rightPanelX + contentPadding, currentY);
+        currentY += 20;
+        context.fillText(`Resolución: ${this.resolution}`, rightPanelX + contentPadding, currentY);
+        currentY += 40;
+        
+        
+        context.font = '12px Arial';
+        context.fillStyle = '#6c757d';
+        context.textAlign = 'right';
+        context.fillText(`Generado: ${new Date().toLocaleString()}`, canvas.width - contentPadding, panelStartY + panelHeight - 15);
+        
+        
+        const dataURL = canvas.toDataURL('image/png');
+        
+        const link = document.createElement('a');
+        link.download = `superficie-3d-${this.currentSurface}-${new Date().getTime()}.png`;
+        link.href = dataURL;
+        link.click();
+    }
+
+    
+    wrapText(context, text, maxWidth, font) {
+        const previousFont = context.font;
+        context.font = font;
+        
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = words[0];
+        
+        for (let i = 1; i < words.length; i++) {
+            const word = words[i];
+            const width = context.measureText(currentLine + " " + word).width;
+            if (width < maxWidth) {
+                currentLine += " " + word;
+            } else {
+                lines.push(currentLine);
+                currentLine = word;
+            }
+        }
+        lines.push(currentLine);
+        
+        context.font = previousFont;
+        return lines;
+    }
+
+    getSurfaceName(surfaceType) {
+        const names = {
+            'paraboloid': 'Paraboloide Elíptico',
+            'hyperbolic': 'Paraboloide Hiperbólico',
+            'sphere': 'Esfera',
+            'cylinder': 'Cilindro',
+            'cone': 'Cono',
+            'torus': 'Toro',
+            'helicoid': 'Helicoide',
+            'hyperboloid1': 'Hiperboloide 1 Hoja',
+            'monkey': 'Superficie de Silla de Mono'
+        };
+        return names[surfaceType] || surfaceType;
     }
 
     setupHelpers() {
@@ -915,16 +1139,6 @@ class WebGLApp {
 
     resetCamera() {
         this.autoFrameSurface();
-    }
-
-    takeScreenshot() {
-        this.renderer.render(this.scene, this.camera);
-        const dataURL = this.renderer.domElement.toDataURL('image/png');
-        
-        const link = document.createElement('a');
-        link.download = `superficie-3d-${this.currentSurface}.png`;
-        link.href = dataURL;
-        link.click();
     }
 
     
