@@ -82,9 +82,13 @@ body {
 .header-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    max-width: 1400px;
+    justify-content: space-between; /* Titulo izquierda, botones derecha */
     margin: 0 auto;
+}
+
+.header-text {
+    text-align: left;
+    flex: 1;
 }
 
 .header-content h1 {
@@ -105,8 +109,8 @@ body {
 .header-controls {
     display: flex;
     gap: 0.5rem;
+    justify-content: flex-end; /* Botones pegados a la derecha */
 }
-
 
 .btn-icon {
     background: var(--bg-tertiary);
@@ -245,6 +249,46 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.control-group.inline label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+/* Estilo personalizado para el checkbox de malla */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.form-checkbox:checked + .checkbox-icon {
+    color: var(--accent);
+}
+
+.form-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
 }
 
 .color-info {
