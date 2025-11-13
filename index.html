@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometría Tridimensional - Visualizador 3D Profesional</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="render_logo_icon_248664.ico" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="dark-mode">
+    <div id="app">
+        <!-- Header -->
+        <header id="header">
+            <div class="header-content">
+                <h1>
+                    <i class="fas fa-shapes"></i>
+                    Geometría Tridimensional
+                </h1>
+                <h2>Superficies en el Espacio Tridimensional</h2>
+                <div class="header-controls">
+                    <button id="themeToggle" class="btn-icon" title="Cambiar tema">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="fullscreenToggle" class="btn-icon" title="Pantalla completa">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div id="container">
+            <aside id="sidebar">
+                <div class="sidebar-section">
+                    <h3>
+                        <i class="fas fa-sliders-h"></i>
+                        Controles de Visualización
+                    </h3>
+                    
+                    <div class="control-group">
+                        <label for="surfaceSelector">
+                            <i class="fas fa-cube"></i>
+                            Tipo de Superficie
+                        </label>
+                        <select id="surfaceSelector" class="form-select">
+                            <option value="paraboloid">Paraboloide Elíptico</option>
+                            <option value="hyperbolic">Paraboloide Hiperbólico</option>
+                            <option value="sphere">Esfera</option>
+                            <option value="cylinder">Cilindro</option>
+                            <option value="cone">Cono</option>
+                            <option value="torus">Toro</option>
+                            <option value="helicoid">Helicoide</option>
+                            <option value="hyperboloid1">Hiperboloide 1 Hoja</option>
+                            <option value="monkey">Superficie de Silla</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="resolution">
+                            <i class="fas fa-border-all"></i>
+                            Resolución: <span id="resolutionValue">50</span>
+                        </label>
+                        <input type="range" id="resolution" class="form-range" min="20" max="100" value="50">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="scale">
+                            <i class="fas fa-arrows-alt"></i>
+                            Escala: <span id="scaleValue">4.0</span>
+                        </label>
+                        <input type="range" id="scale" class="form-range" min="1" max="5" value="4" step="0.1">
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>
+                        <i class="fas fa-palette"></i>
+                        Apariencia
+                    </h3>
+
+                    <div class="control-group inline">
+                        <label for="wireframe">
+                            <i class="fas fa-grid"></i>
+                            Mostrar Malla
+                        </label>
+                        <input type="checkbox" id="wireframe" class="form-checkbox">
+                    </div>
+
+                    <div class="control-group inline">
+                        <label for="autoRotate">
+                            <i class="fas fa-sync"></i>
+                            Rotación Automática
+                        </label>
+                        <input type="checkbox" id="autoRotate" class="form-checkbox">
+                    </div>
+
+                    <div class="control-group inline">
+                        <label for="showAxes">
+                            <i class="fas fa-arrows-alt"></i>
+                            Mostrar Ejes
+                        </label>
+                        <input type="checkbox" id="showAxes" class="form-checkbox" checked>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>
+                        <i class="fas fa-square-root-alt"></i>
+                        Ecuación Matemática
+                    </h3>
+                    <div id="equation" class="equation-display">
+                        z = x² + y²
+                    </div>
+                    <div id="equationDesc" class="equation-desc">
+                        Paraboloide elíptico - Superficie cuadrática
+                    </div>
+                </div>
+
+                <div class="sidebar-actions">
+                    <button id="resetView" class="btn-primary">
+                        <i class="fas fa-redo"></i>
+                        Resetear Vista
+                    </button>
+                    <div>
+                        <h5> </h5>
+                    </div>
+                    <button id="screenshot" class="btn-secondary">
+                        <i class="fas fa-camera"></i>
+                        Capturar
+                    </button>
+                </div>
+            </aside>
+
+            <main id="canvasContainer">
+                <canvas id="webglCanvas"></canvas>
+                <div id="loading">
+                    <div class="loading-spinner">
+                        <i class="fas fa-cog fa-spin"></i>
+                    </div>
+                    <p>Inicializando WebGL...</p>
+                </div>
+                <div id="canvasOverlay">
+                    <div class="view-controls">
+                        <button id="viewTop" class="btn-view" title="Vista Superior">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button id="viewFront" class="btn-view" title="Vista Frontal">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button id="viewRight" class="btn-view" title="Vista Lateral">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <footer id="infoPanel">
+            <div class="info-item">
+                <i class="fas fa-crosshairs"></i>
+                <span id="coordinates">X: 0.00, Y: 0.00, Z: 0.00</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span id="fps">FPS: 60</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-cube"></i>
+                <span id="vertexCount">Vértices: 0</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-project-diagram"></i>
+                <span id="triangleCount">Triángulos: 0</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/surfaces.js"></script>
+    <script src="js/controls.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
