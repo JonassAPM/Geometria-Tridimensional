@@ -45,7 +45,7 @@ class UIControls {
                 <span style="color: #ffffffff">Z: ${depth.toFixed(2)}</span>`;
         }
 
-        // Mantener los otros métodos igual...
+        
         updateEquation(equation, description) {
             document.getElementById('equation').textContent = equation;
             document.getElementById('equationDesc').textContent = description;

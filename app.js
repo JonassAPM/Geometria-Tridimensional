@@ -782,7 +782,7 @@ class WebGLApp {
         const boundingBox = new THREE.Box3().setFromObject(this.surface);
         const size = boundingBox.getSize(new THREE.Vector3());
         
-        // Actualizar UI con las dimensiones
+        
         if (this.uiControls) {
             this.uiControls.updateDimensions(size.x, size.y, size.z);
         }

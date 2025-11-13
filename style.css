@@ -82,7 +82,7 @@ body {
 .header-content {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Titulo izquierda, botones derecha */
+    justify-content: space-between;
     margin: 0 auto;
 }
 
@@ -109,7 +109,7 @@ body {
 .header-controls {
     display: flex;
     gap: 0.5rem;
-    justify-content: flex-end; /* Botones pegados a la derecha */
+    justify-content: flex-end;
 }
 
 .btn-icon {
@@ -262,7 +262,7 @@ body {
     cursor: pointer;
 }
 
-/* Estilo personalizado para el checkbox de malla */
+
 .checkbox-container {
     display: flex;
     align-items: center;
