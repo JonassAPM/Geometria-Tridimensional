@@ -60,9 +60,7 @@ class UIControls {
 
         updateDimensions(width, height, depth) {
             document.getElementById('coordinates').innerHTML = 
-                `<span style="color: #ffffffff">X: ${width.toFixed(2)}</span> | 
-                <span style="color: #ffffffff">Y: ${height.toFixed(2)}</span> | 
-                <span style="color: #ffffffff">Z: ${depth.toFixed(2)}</span>`;
+                `X: ${width.toFixed(2)} | Y: ${height.toFixed(2)} | Z: ${depth.toFixed(2)}`;
         }
 
         

@@ -4,11 +4,14 @@
     --light-bg-secondary: #f8fafc;
     --light-bg-tertiary: #f1f5f9;
     --light-text-primary: #1e293b;
-    --light-text-secondary: #64748b;
+    --light-text-secondary: #515e70;
     --light-border: #e2e8f0;
     --light-accent: #2563eb;
     --light-accent-hover: #2563eb;
     --light-canvas-bg: #f8fafc;
+    --light-grid-color: #ffffff;
+    --light-grid-text: #181b1f;
+
     
    
     --dark-bg-primary: #0f172a;
@@ -20,6 +23,8 @@
     --dark-accent: #3b83db;
     --dark-accent-hover: #1767a8;
     --dark-canvas-bg: #0f172a;
+    --dark-grid-color: #334155;
+    --dark-grid-text: #cbd5e1;
     
    
     --bg-primary: var(--dark-bg-primary);
@@ -36,6 +41,11 @@
     --border-radius: 12px;
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --light-grid-color: #cbd5e1;
+    --dark-grid-color: #5c6b81;
+    --grid-color: var(--dark-grid-color);
+    --grid-text-color: var(--dark-grid-text);
 }
 
 .light-mode {
@@ -48,6 +58,17 @@
     --accent: var(--light-accent);
     --accent-hover: var(--light-accent-hover);
     --canvas-bg: var(--light-canvas-bg);
+    --grid-color: var(--light-grid-color);
+    --grid-text-color: var(--light-grid-text);
+}
+
+#coordinates {
+    color: var(--text-primary) !important;
+    transition: var(--transition);
+}
+
+#coordinates span {
+    color: inherit !important;
 }
 
 * {

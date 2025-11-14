@@ -492,10 +492,11 @@ class WebGLApp {
         
         const gridSize = 20;
         const divisions = 20;
-        const gridColor = document.body.classList.contains('dark-mode') ? 0x334155 : 0xcbd5e1;
+        const gridColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--grid-color').trim();
+        const gridColorHex = parseInt(gridColor.replace('#', ''), 16);
         
-        
-        this.gridHelper = new THREE.GridHelper(gridSize, divisions, gridColor, gridColor);
+        this.gridHelper = new THREE.GridHelper(gridSize, divisions, gridColorHex, gridColorHex);
         this.gridHelper.position.y = 0;
         this.scene.add(this.gridHelper);
         
@@ -596,18 +597,20 @@ class WebGLApp {
     }
 
     createHeightNumber(text, position, size, color) {
+        const gridTextColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--grid-text-color').trim();
+        const textColorHex = parseInt(gridTextColor.replace('#', ''), 16);
+        
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         canvas.width = 64;
         canvas.height = 64;
         
-        
         context.fillStyle = 'transparent';
         context.fillRect(0, 0, canvas.width, canvas.height);
         
-        
         context.font = 'Bold 28px Arial';
-        context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+        context.fillStyle = `#${textColorHex.toString(16).padStart(6, '0')}`;
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -703,18 +706,20 @@ class WebGLApp {
     }
 
     createGridNumber(text, position, size, color) {
+        const gridTextColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--grid-text-color').trim();
+        const textColorHex = parseInt(gridTextColor.replace('#', ''), 16);
+        
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         canvas.width = 64;
         canvas.height = 64;
         
-        
         context.fillStyle = 'transparent';
         context.fillRect(0, 0, canvas.width, canvas.height);
         
-        
         context.font = 'Bold 32px Arial';
-        context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+        context.fillStyle = `#${textColorHex.toString(16).padStart(6, '0')}`;
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -728,7 +733,6 @@ class WebGLApp {
         const sprite = new THREE.Sprite(material);
         sprite.position.copy(position);
         sprite.scale.set(size, size, 1);
-        
         
         sprite.rotation.x = -Math.PI / 2;
         
@@ -765,24 +769,25 @@ class WebGLApp {
     }
 
     createAxisLabels(axesGroup, axisLength) {
+
+        const gridTextColor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--grid-text-color').trim();
+        const textColorHex = parseInt(gridTextColor.replace('#', ''), 16);
         
         const labelDistance = axisLength + 0.5;
         const labelSize = 0.6;
         
-        
-        const createLabelTexture = (text, color) => {
+        const createLabelTexture = (text, axisColor) => {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             canvas.width = 128;
             canvas.height = 128;
             
-            
             context.fillStyle = 'transparent';
             context.fillRect(0, 0, canvas.width, canvas.height);
             
-            
             context.font = 'Bold 96px Arial';
-            context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+            context.fillStyle = `#${textColorHex.toString(16).padStart(6, '0')}`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             context.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -818,16 +823,19 @@ class WebGLApp {
         axesGroup.add(zLabel);
     }
 
-
     updateSceneBackground() {
         const isDarkMode = document.body.classList.contains('dark-mode');
         this.scene.background = new THREE.Color(isDarkMode ? 0x0f172a : 0xf8fafc);
         
-        
         if (this.gridHelper) {
-            const gridColor = isDarkMode ? 0x334155 : 0xcbd5e1;
-            this.gridHelper.material.color.setHex(gridColor);
+            const gridColor = getComputedStyle(document.documentElement)
+                .getPropertyValue('--grid-color').trim();
+            const gridColorHex = parseInt(gridColor.replace('#', ''), 16);
+            
+            this.gridHelper.material.color.setHex(gridColorHex);
         }
+        
+        this.createNumberedGrid();
     }
 
     createSurface() {
@@ -1145,7 +1153,7 @@ class WebGLApp {
     updateTheme() {
         this.updateSceneBackground();
         this.setupHelpers(); 
-        
+        this.createNumberedGrid();
         this.createSurface();
     }
 }
