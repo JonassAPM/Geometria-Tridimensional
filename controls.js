@@ -9,7 +9,6 @@ class UIControls {
     }
 
     setupFullscreenListeners() {
-        
         const fullscreenEvents = [
             'fullscreenchange',
             'webkitfullscreenchange', 
@@ -26,9 +25,10 @@ class UIControls {
     }
 
     setupRangeStyles() {
-        
         const resolutionSlider = document.getElementById('resolution');
         const scaleSlider = document.getElementById('scale');
+        const domainXSlider = document.getElementById('domainX');
+        const domainYSlider = document.getElementById('domainY');
         
         const updateRangeFill = (slider) => {
             const value = slider.value;
@@ -37,11 +37,21 @@ class UIControls {
             const percent = ((value - min) / (max - min)) * 100;
             slider.style.setProperty('--fill-percent', `${percent}%`);
         };
-        
+
+        resolutionSlider.value = 60;
+        scaleSlider.value = 1;
+        domainXSlider.value = 3.5;
+        domainYSlider.value = 3.5;
+
+        document.getElementById('resolutionValue').textContent = '60';
+        document.getElementById('scaleValue').textContent = '1';
+        document.getElementById('domainXValue').textContent = '3.5';
+        document.getElementById('domainYValue').textContent = '3.5';
         
         updateRangeFill(resolutionSlider);
         updateRangeFill(scaleSlider);
-        
+        updateRangeFill(domainXSlider);
+        updateRangeFill(domainYSlider);
         
         resolutionSlider.addEventListener('input', () => {
             updateRangeFill(resolutionSlider);
@@ -56,35 +66,70 @@ class UIControls {
             document.getElementById('scaleValue').textContent = value.toFixed(1);
             this.app.updateScale(value);
         });
-    }
 
-        updateDimensions(width, height, depth) {
-            document.getElementById('coordinates').innerHTML = 
-                `X: ${width.toFixed(2)} | Y: ${height.toFixed(2)} | Z: ${depth.toFixed(2)}`;
-        }
-
-        
-        updateEquation(equation, description) {
-            document.getElementById('equation').textContent = equation;
-            document.getElementById('equationDesc').textContent = description;
-        }
-
-        updateFPS(fps) {
-            document.getElementById('fps').textContent = `FPS: ${fps}`;
-        }
-
-        updateMeshInfo(vertexCount, triangleCount) {
-            document.getElementById('vertexCount').textContent = `Vértices: ${vertexCount}`;
-            document.getElementById('triangleCount').textContent = `Triángulos: ${triangleCount}`;
-        }
-
-    initializeControls() {
-        
-        document.getElementById('surfaceSelector').addEventListener('change', (e) => {
-            this.app.changeSurface(e.target.value);
+        domainXSlider.addEventListener('input', () => {
+            updateRangeFill(domainXSlider);
+            const value = parseFloat(domainXSlider.value);
+            document.getElementById('domainXValue').textContent = value.toFixed(1);
+            this.updateDomain();
         });
 
-        
+        domainYSlider.addEventListener('input', () => {
+            updateRangeFill(domainYSlider);
+            const value = parseFloat(domainYSlider.value);
+            document.getElementById('domainYValue').textContent = value.toFixed(1);
+            this.updateDomain();
+        });
+    }
+
+    updateDomain() {
+        const domainX = parseFloat(document.getElementById('domainX').value);
+        const domainY = parseFloat(document.getElementById('domainY').value);
+        this.app.updateDomain(domainX, domainY);
+    }
+
+    updateDimensions(width, height, depth) {
+        document.getElementById('coordinates').innerHTML = 
+            `<span style="color: #ffffff">X: ${width.toFixed(2)}</span> | 
+             <span style="color: #ffffff">Y: ${height.toFixed(2)}</span> | 
+             <span style="color: #ffffff">Z: ${depth.toFixed(2)}</span>`;
+    }
+
+    updateEquation(equation, description) {
+        document.getElementById('equation').textContent = equation;
+        document.getElementById('equationDesc').textContent = description;
+    }
+
+    updateFPS(fps) {
+        document.getElementById('fps').textContent = `FPS: ${fps}`;
+    }
+
+    updateMeshInfo(vertexCount, triangleCount) {
+        document.getElementById('vertexCount').textContent = `Vértices: ${vertexCount}`;
+        document.getElementById('triangleCount').textContent = `Triángulos: ${triangleCount}`;
+    }
+
+    initializeControls() {
+        // Plot custom equation
+        document.getElementById('plotButton').addEventListener('click', () => {
+            const equation = document.getElementById('customEquation').value;
+            this.app.plotCustomEquation(equation);
+        });
+
+        // Load examples
+        document.getElementById('loadExample').addEventListener('click', () => {
+            const example = document.getElementById('examplesSelector').value;
+            this.app.changeSurface(example);
+        });
+
+        // Enter key for equation input
+        document.getElementById('customEquation').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const equation = document.getElementById('customEquation').value;
+                this.app.plotCustomEquation(equation);
+            }
+        });
+
         const resolutionSlider = document.getElementById('resolution');
         const resolutionValue = document.getElementById('resolutionValue');
         
@@ -103,6 +148,23 @@ class UIControls {
             this.app.updateScale(value);
         });
 
+        const domainXSlider = document.getElementById('domainX');
+        const domainXValue = document.getElementById('domainXValue');
+        
+        domainXSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            domainXValue.textContent = value.toFixed(1);
+            this.updateDomain();
+        });
+
+        const domainYSlider = document.getElementById('domainY');
+        const domainYValue = document.getElementById('domainYValue');
+        
+        domainYSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            domainYValue.textContent = value.toFixed(1);
+            this.updateDomain();
+        });
         
         document.getElementById('wireframe').addEventListener('change', (e) => {
             this.app.toggleWireframe(e.target.checked);
@@ -115,7 +177,6 @@ class UIControls {
         document.getElementById('showAxes').addEventListener('change', (e) => {
             this.app.toggleAxes(e.target.checked);
         });
-
         
         document.getElementById('viewTop').addEventListener('click', () => {
             this.app.setView('top');
@@ -128,7 +189,6 @@ class UIControls {
         document.getElementById('viewRight').addEventListener('click', () => {
             this.app.setView('right');
         });
-
         
         document.getElementById('resetView').addEventListener('click', () => {
             this.app.resetCamera();
@@ -137,7 +197,6 @@ class UIControls {
         document.getElementById('screenshot').addEventListener('click', () => {
             this.app.takeScreenshot();
         });
-
         
         document.getElementById('themeToggle').addEventListener('click', () => {
             this.toggleTheme();
@@ -146,6 +205,26 @@ class UIControls {
         document.getElementById('fullscreenToggle').addEventListener('click', () => {
             this.toggleFullscreen();
         });
+    }
+
+    updateEquationType(type) {
+        const equationInput = document.getElementById('customEquation');
+        const equationLabel = document.querySelector('label[for="customEquation"]');
+        
+        switch(type) {
+            case 'explicit':
+                equationLabel.innerHTML = '<i class="fas fa-edit"></i> f(x, y) =';
+                equationInput.placeholder = 'x^2 + y^2';
+                break;
+            case 'implicit':
+                equationLabel.innerHTML = '<i class="fas fa-edit"></i> f(x, y, z) =';
+                equationInput.placeholder = 'x^2 + y^2 + z^2 - 4';
+                break;
+            case 'parametric':
+                equationLabel.innerHTML = '<i class="fas fa-edit"></i> x(u,v), y(u,v), z(u,v)';
+                equationInput.placeholder = 'u*cos(v), u*sin(v), u';
+                break;
+        }
     }
 
     toggleTheme() {
@@ -159,7 +238,6 @@ class UIControls {
             body.classList.replace('light-mode', 'dark-mode');
             themeIcon.className = 'fas fa-moon';
         }
-        
         
         this.app.updateTheme();
     }
@@ -184,7 +262,6 @@ class UIControls {
                 element.msRequestFullscreen();
             }
         } else {
-            
             if (document.exitFullscreen) {
                 document.exitFullscreen();
             } else if (document.webkitExitFullscreen) {
@@ -195,7 +272,6 @@ class UIControls {
                 document.msExitFullscreen();
             }
         }
-        
         
         setTimeout(() => {
             this.updateFullscreenIcon();

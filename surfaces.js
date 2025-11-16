@@ -1,20 +1,54 @@
 class SurfaceGenerator {
     constructor() {
         this.geometries = new Map();
+        this.parser = math.parser();
     }
 
-    generateParaboloid(resolution = 50, scale = 3) {
+    evaluateExpression(expr, x, y) {
+        try {
+            this.parser.set('x', x);
+            this.parser.set('y', y);
+            return this.parser.evaluate(expr);
+        } catch (error) {
+            console.error('Error evaluando expresión:', error);
+            return 0;
+        }
+    }
+
+    generateCustomFunction(resolution = 50, domainX = 4, domainY = 4, scale = 1, equation = "x^2 + y^2") {
         const vertices = [];
         const indices = [];
+        
+        let compiledExpr;
+        try {
+            compiledExpr = math.compile(equation);
+        } catch (error) {
+            console.error('Error compilando expresión:', error);
+            // Fallback a una expresión simple
+            compiledExpr = math.compile("0");
+        }
         
         for (let i = 0; i <= resolution; i++) {
             const u = (i / resolution) * 2 - 1;
             for (let j = 0; j <= resolution; j++) {
                 const v = (j / resolution) * 2 - 1;
                 
-                const x = u * scale;
-                const z = v * scale;
-                const y = (x*x + z*z) * 0.3; 
+                const x = u * domainX;
+                const z = v * domainY;
+                
+                let y;
+                try {
+                    const result = compiledExpr.evaluate({x: x, y: z});
+                    
+                    if (typeof result === 'number' && isFinite(result)) {
+                        y = result * scale;
+                    } else {
+                        y = 0;
+                    }
+                } catch (error) {
+                    console.warn(`Error evaluando en (${x.toFixed(2)}, ${z.toFixed(2)}):`, error.message);
+                    y = 0;
+                }
                 
                 vertices.push(x, y, z);
                 
@@ -30,37 +64,20 @@ class SurfaceGenerator {
             }
         }
         
-        return { vertices, indices, vertexCount: vertices.length / 3, triangleCount: indices.length / 3 };
+        return { 
+            vertices, 
+            indices, 
+            vertexCount: vertices.length / 3, 
+            triangleCount: indices.length / 3 
+        };
     }
 
-    generateHyperbolicParaboloid(resolution = 50, scale = 3) {
-        const vertices = [];
-        const indices = [];
-        
-        for (let i = 0; i <= resolution; i++) {
-            const u = (i / resolution) * 2 - 1;
-            for (let j = 0; j <= resolution; j++) {
-                const v = (j / resolution) * 2 - 1;
-                
-                const x = u * scale;
-                const z = v * scale;
-                const y = (x*x - z*z) * 0.2; 
-                
-                vertices.push(x, y, z);
-                
-                if (i < resolution && j < resolution) {
-                    const a = i * (resolution + 1) + j;
-                    const b = a + 1;
-                    const c = a + (resolution + 1);
-                    const d = c + 1;
-                    
-                    indices.push(a, b, c);
-                    indices.push(b, d, c);
-                }
-            }
-        }
-        
-        return { vertices, indices, vertexCount: vertices.length / 3, triangleCount: indices.length / 3 };
+    generateParaboloid(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "x^2 + y^2");
+    }
+
+    generateHyperbolicParaboloid(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "x^2 - y^2");
     }
 
     generateSphere(resolution = 50, scale = 2) {
@@ -248,7 +265,6 @@ class SurfaceGenerator {
         const vertices = [];
         const indices = [];
         
-        
         for (let i = 0; i <= resolution; i++) {
             const u = (i / resolution) * 2 * Math.PI;
             for (let j = 0; j <= resolution/2; j++) {
@@ -261,7 +277,6 @@ class SurfaceGenerator {
                 vertices.push(x, y, z);
             }
         }
-        
         
         for (let i = 0; i <= resolution; i++) {
             const u = (i / resolution) * 2 * Math.PI;
@@ -276,7 +291,6 @@ class SurfaceGenerator {
             }
         }
         
-        
         const totalVertices = vertices.length / 3;
         for (let i = 0; i < totalVertices - (resolution + 2); i++) {
             indices.push(i, i + 1, i + resolution + 1);
@@ -286,33 +300,74 @@ class SurfaceGenerator {
         return { vertices, indices, vertexCount: vertices.length / 3, triangleCount: indices.length / 3 };
     }
 
-    generateMonkeySaddle(resolution = 50, scale = 2) {
+    generateEllipsoid(resolution = 50, scale = 2) {
         const vertices = [];
         const indices = [];
+        const a = scale * 2;
+        const b = scale * 1.5;
+        const c = scale;
         
         for (let i = 0; i <= resolution; i++) {
-            const u = (i / resolution) * 2 - 1;
+            const theta = (i / resolution) * Math.PI;
             for (let j = 0; j <= resolution; j++) {
-                const v = (j / resolution) * 2 - 1;
+                const phi = (j / resolution) * 2 * Math.PI;
                 
-                const x = u * scale;
-                const z = v * scale;
-                const y = (x*x*x - 3*x*z*z) * 0.05; 
+                const x = a * Math.sin(theta) * Math.cos(phi);
+                const y = b * Math.cos(theta);
+                const z = c * Math.sin(theta) * Math.sin(phi);
                 
                 vertices.push(x, y, z);
                 
                 if (i < resolution && j < resolution) {
-                    const a = i * (resolution + 1) + j;
-                    const b = a + 1;
-                    const c = a + (resolution + 1);
-                    const d = c + 1;
+                    const idx = i * (resolution + 1) + j;
+                    const nextIdx = idx + resolution + 1;
                     
-                    indices.push(a, b, c);
-                    indices.push(b, d, c);
+                    indices.push(idx, idx + 1, nextIdx);
+                    indices.push(idx + 1, nextIdx + 1, nextIdx);
                 }
             }
         }
         
         return { vertices, indices, vertexCount: vertices.length / 3, triangleCount: indices.length / 3 };
+    }
+
+    generateMonkeySaddle(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "x^3 - 3*x*y^2");
+    }
+
+    generateSinc(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "sin(sqrt(x^2 + y^2)) / sqrt(x^2 + y^2)");
+    }
+
+    generateRipple(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "sin(x) * cos(y)");
+    }
+
+    generateGaussian(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "exp(-(x^2 + y^2))");
+    }
+
+    generatePolynomial(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "x^3 + y^3 - 3*x*y");
+    }
+
+    generateRational(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "x*y/(1 + x^2 + y^2)");
+    }
+
+    generateAbsolute(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "abs(x) + abs(y)");
+    }
+
+    generateSine(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "sin(x) + sin(y)");
+    }
+
+    generateTangent(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "tan(x*y)");
+    }
+
+    generateTrigonometric(resolution = 50, domainX = 4, domainY = 4, scale = 1) {
+        return this.generateCustomFunction(resolution, domainX, domainY, scale, "sin(x) * cos(y)");
     }
 }

@@ -904,3 +904,66 @@ body {
     width: 100% !important;
     height: 100% !important;
 }
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    transition: var(--transition);
+    font-family: 'Courier New', monospace;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.equation-help {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.equation-help small {
+    font-style: italic;
+}
+
+optgroup {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+optgroup option {
+    font-weight: normal;
+    padding-left: 1rem;
+}
+
+@media (max-width: 768px) {
+    .sidebar-section {
+        padding: 1rem;
+    }
+    
+    .control-group {
+        margin-bottom: 1rem;
+    }
+    
+    .equation-display {
+        font-size: 1rem;
+        padding: 1rem;
+    }
+}
+
+.control-group span {
+    margin-left: 0.5rem;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 3rem;
+    display: inline-block;
+    text-align: right;
+}

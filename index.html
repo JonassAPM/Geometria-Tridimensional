@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometría Tridimensional - Visualizador 3D Profesional</title>
+    <title>Graficador 3D Universal - Visualizador de Superficies</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="render_logo_icon_248664.ico" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="dark-mode">
@@ -16,10 +17,10 @@
         <header id="header">
             <div class="header-content">
                 <h1>
-                    <i class="fas fa-shapes"></i>
-                    Geometría Tridimensional
+                    <i class="fas fa-function"></i>
+                    Graficador 3D Universal
                 </h1>
-                <h2>Superficies en el Espacio Tridimensional</h2>
+                <h2>Visualización de Superficies y Funciones 3D</h2>
                 <div class="header-controls">
                     <button id="themeToggle" class="btn-icon" title="Cambiar tema">
                         <i class="fas fa-moon"></i>
@@ -35,50 +36,115 @@
             <aside id="sidebar">
                 <div class="sidebar-section">
                     <h3>
-                        <i class="fas fa-sliders-h"></i>
-                        Controles de Visualización
+                        <i class="fas fa-square-root-alt"></i>
+                        Ecuación Personalizada
                     </h3>
                     
                     <div class="control-group">
-                        <label for="surfaceSelector">
-                            <i class="fas fa-cube"></i>
-                            Tipo de Superficie
+                        <label for="customEquation">
+                            <i class="fas fa-edit"></i>
+                            f(x, y) =
                         </label>
-                        <select id="surfaceSelector" class="form-select">
-                            <option value="paraboloid">Paraboloide Elíptico</option>
-                            <option value="hyperbolic">Paraboloide Hiperbólico</option>
-                            <option value="sphere">Esfera</option>
-                            <option value="cylinder">Cilindro</option>
-                            <option value="cone">Cono</option>
-                            <option value="torus">Toro</option>
-                            <option value="helicoid">Helicoide</option>
-                            <option value="hyperboloid1">Hiperboloide 1 Hoja</option>
-                            <option value="monkey">Superficie de Silla</option>
+                        <input type="text" id="customEquation" class="form-input" 
+                            placeholder="x^2 + y^2" value="x^2 + y^2">
+                        <div class="equation-help">
+                            <small>Usa x, y como variables. Ej: sin(x)*cos(y), sqrt(x^2+y^2), x*y/(1+x^2+y^2)</small>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="domainX">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            Dominio X: ± <span id="domainXValue">3.5</span>
+                        </label>
+                        <input type="range" id="domainX" class="form-range" min="1" max="10" value="3.5" step="0.5">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="domainY">
+                            <i class="fas fa-arrows-alt-v"></i>
+                            Dominio Y: ± <span id="domainYValue">3.5</span>
+                        </label>
+                        <input type="range" id="domainY" class="form-range" min="1" max="10" value="3.5" step="0.5">
+                    </div>
+
+                    <button id="plotButton" class="btn-primary">
+                        <i class="fas fa-chart-line"></i>
+                        Graficar Ecuación
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>
+                        <i class="fas fa-shapes"></i>
+                        Ejemplos Predefinidos
+                    </h3>
+                    
+                    <div class="control-group">
+                        <label for="examplesSelector">
+                            <i class="fas fa-book"></i>
+                            Biblioteca de Ejemplos
+                        </label>
+                        <select id="examplesSelector" class="form-select">
+                            <optgroup label="Superficies Cuadráticas">
+                                <option value="paraboloid">Paraboloide Elíptico</option>
+                                <option value="hyperbolic">Paraboloide Hiperbólico</option>
+                                <option value="hyperboloid1">Hiperboloide 1 Hoja</option>
+                                <option value="ellipsoid">Elipsoide</option>
+                            </optgroup>
+                            <optgroup label="Superficies de Revolución">
+                                <option value="sphere">Esfera</option>
+                                <option value="cylinder">Cilindro</option>
+                                <option value="cone">Cono</option>
+                                <option value="torus">Toro</option>
+                            </optgroup>
+                            <optgroup label="Superficies Especiales">
+                                <option value="helicoid">Helicoide</option>
+                                <option value="monkey">Superficie de Silla de Mono</option>
+                                <option value="sinc">Función Sinc</option>
+                                <option value="ripple">Ondas</option>
+                                <option value="gaussian">Campana Gaussiana</option>
+                            </optgroup>
+                            <optgroup label="Funciones Algebraicas">
+                                <option value="polynomial">Polinomio</option>
+                                <option value="rational">Función Racional</option>
+                                <option value="absolute">Valor Absoluto</option>
+                            </optgroup>
+                            <optgroup label="Funciones Trigonométricas">
+                                <option value="sine">Senos</option>
+                                <option value="tangent">Tangente</option>
+                                <option value="trigonometric">Trigonométrica</option>
+                            </optgroup>
                         </select>
                     </div>
+
+                    <button id="loadExample" class="btn-secondary">
+                        <i class="fas fa-download"></i>
+                        Cargar Ejemplo
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>
+                        <i class="fas fa-sliders-h"></i>
+                        Controles de Visualización
+                    </h3>
 
                     <div class="control-group">
                         <label for="resolution">
                             <i class="fas fa-border-all"></i>
-                            Resolución: <span id="resolutionValue">50</span>
+                            Poligonos: <span id="resolutionValue">60</span>%
                         </label>
-                        <input type="range" id="resolution" class="form-range" min="20" max="100" value="50">
+                        <input type="range" id="resolution" class="form-range" min="20" max="100" value="60">
                     </div>
 
                     <div class="control-group">
                         <label for="scale">
                             <i class="fas fa-arrows-alt"></i>
-                            Escala: <span id="scaleValue">4.0</span>
+                            Escala: <span id="scaleValue">1</span>
                         </label>
-                        <input type="range" id="scale" class="form-range" min="1" max="5" value="4" step="0.1">
+                        <input type="range" id="scale" class="form-range" min="0.1" max="3" value="1" step="0.1">
                     </div>
-                </div>
-
-                <div class="sidebar-section">
-                    <h3>
-                        <i class="fas fa-palette"></i>
-                        Apariencia
-                    </h3>
 
                     <div class="control-group inline">
                         <label for="wireframe">
@@ -107,8 +173,8 @@
 
                 <div class="sidebar-section">
                     <h3>
-                        <i class="fas fa-square-root-alt"></i>
-                        Ecuación Matemática
+                        <i class="fas fa-info-circle"></i>
+                        Información de la Superficie
                     </h3>
                     <div id="equation" class="equation-display">
                         z = x² + y²
