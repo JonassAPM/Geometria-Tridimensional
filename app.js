@@ -866,10 +866,41 @@ class WebGLApp {
                 description = 'Producto trigonométrico - Ondas estacionarias';
                 break;
             case 'custom':
-                const customEquation = document.getElementById('customEquation').value;
-                geometryData = this.surfaceGenerator.generateCustomFunction(this.resolution, this.domainX, this.domainY, this.scale, customEquation);
-                equation = `z = ${customEquation}`;
-                description = 'Ecuación personalizada - Función definida por el usuario';
+                // --- LÓGICA MODIFICADA AQUÍ ---
+                const rawEquation = document.getElementById('customEquation').value;
+                const helpText = document.querySelector('.equation-help');
+
+                // 1. Convertir todo a minúsculas
+                // 2. Reemplazar 'sen' por 'sin'
+                let processedEquation = rawEquation.toLowerCase().replace(/sen/g, 'sin');
+
+                // 3. Validar si existe la letra 'z'
+                if (processedEquation.includes('z')) {
+                    // Mostrar error ROJO
+                    if (helpText) {
+                        helpText.style.color = '#ff4444';
+                        helpText.style.fontWeight = 'bold';
+                        helpText.innerText = "Z NO ES UNA OPCION GRAFICABLE";
+                    }
+                    return; // DETIENE LA EJECUCIÓN (No grafica nada)
+                } else {
+                    // Restaurar texto de ayuda normal si no hay error
+                    if (helpText) {
+                        helpText.style.color = ''; // Color original
+                        helpText.style.fontWeight = 'normal';
+                        helpText.innerHTML = '<small>Usa x, y como variables. Ej: sin(x)*cos(y), sqrt(x^2+y^2)</small>';
+                    }
+                }
+
+                geometryData = this.surfaceGenerator.generateCustomFunction(
+                    this.resolution, 
+                    this.domainX, 
+                    this.domainY, 
+                    this.scale, 
+                    processedEquation // Pasamos la ecuación limpia (sin z, minúsculas, sin->sen)
+                );
+                equation = `z = ${rawEquation}`; // Mantenemos lo que escribió el usuario para mostrarlo
+                description = 'Ecuación Personalizada - Función definida por el usuario';
                 break;
         }
 
@@ -947,42 +978,20 @@ class WebGLApp {
             
             if (normalizedY < 0.2) {
                 const t = normalizedY / 0.2;
-                color.setRGB(
-                    0.9,                                    
-                    0.2 + t * 0.4,                          
-                    0.1                                     
-                );
+                color.setRGB(0.9, 0.2 + t * 0.4, 0.1);
             } else if (normalizedY < 0.4) {
                 const t = (normalizedY - 0.2) / 0.2;
-                color.setRGB(
-                    0.9,                                    
-                    0.6 + t * 0.3,                          
-                    0.1                                     
-                );
+                color.setRGB(0.9, 0.6 + t * 0.3, 0.1);
             } else if (normalizedY < 0.6) {
                 const t = (normalizedY - 0.4) / 0.2;
-                color.setRGB(
-                    0.9 - t * 0.6,                          
-                    0.9,                                    
-                    0.1 + t * 0.3                           
-                );
+                color.setRGB(0.9 - t * 0.6, 0.9, 0.1 + t * 0.3);
             } else if (normalizedY < 0.8) {
                 const t = (normalizedY - 0.6) / 0.2;
-                color.setRGB(
-                    0.3 - t * 0.2,                          
-                    0.9 - t * 0.6,                          
-                    0.4 + t * 0.4                           
-                );
+                color.setRGB(0.3 - t * 0.2, 0.9 - t * 0.6, 0.4 + t * 0.4);
             } else {
                 const t = (normalizedY - 0.8) / 0.2;
-                color.setRGB(
-                    0.1,                                    
-                    0.3 - t * 0.2,                          
-                    0.8 + t * 0.2                           
-                );
+                color.setRGB(0.1, 0.3 - t * 0.2, 0.8 + t * 0.2);
             }
-            
-            const smoothY = Math.sin(normalizedY * Math.PI * 0.5); 
             
             color.r = Math.min(1, color.r * 1.2);
             color.g = Math.min(1, color.g * 1.15);
